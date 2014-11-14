@@ -28,7 +28,7 @@ func main() {
 
     http_start := []string{"/wiki/Raspberry_Pi"}
 
-    link_goal := "/wiki/Tool"
+    link_goal := "/wiki/Egypt"
 
     queue <- http_start
 
@@ -38,7 +38,7 @@ func main() {
 
     var solution []string
 
-    for i := 0; i < 512:; i++ {
+    for i := 0; i < 512; i++ {
         thread_count++
         fmt.Printf("[%2d] Launching...\n", i)
         go func (id int) {
@@ -54,6 +54,7 @@ func main() {
                 if err == nil {
                     b, _ := ioutil.ReadAll(req.Body)
                     links := reFindLink.FindAllStringSubmatch(string(b), -1)
+                    mutex.Lock()
                     for t := range links {
                         _, v := visited[links[t][1]]
                         if links[t][1] == link_goal {
@@ -62,12 +63,11 @@ func main() {
                             return
                         }
                         if !v {
-                            mutex.Lock()
                             visited[links[t][1]] = true
-                            mutex.Unlock()
                             queue <- append(L, links[t][1])
                         }
                     }
+                    mutex.Unlock()
                 } else {
                     fmt.Println(err)
                 }
