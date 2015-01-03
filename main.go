@@ -66,7 +66,7 @@ func main() {
                 }
                 //Fetch Wikipedia page
                 req, err := http.Get(base_link + L[len(L)-1])
-                if err != nil {
+                if err == nil {
                 	//Extract Links
                     b, _ := ioutil.ReadAll(req.Body)
                     links := reFindLink.FindAllStringSubmatch(string(b), -1)
