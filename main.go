@@ -46,17 +46,17 @@ func main() {
 
     thread_count := 512
 
-    running_threads := 0;
-
     var solution []string
 
     for i := 0; i < thread_count; i++ {
 
     	//Start thread
-    	running_threads++
         fmt.Printf("[%2d] Launching...\n", i)
         go func (id int) {
-            defer func() {running_threads--}()
+        	defer func() {
+            	fmt.Printf("[%2d] Stopping...\n", id)
+        		thread_count--
+        	} ()
             fmt.Printf("[%2d] Starting...\n", id)
 
             for L := range queue {
@@ -74,18 +74,21 @@ func main() {
                     //Add links to queue in batches
                     //mutex lock to prevent concurrent map usage
                     mutex.Lock()
-                    for t := range links {
-                        _, v := visited[links[t][1]]
-                        if links[t][1] == link_goal {
-                            solution = append(L, links[t][1])
-                            done = true
-                            return
-                        }
-                        if !v {
-                            visited[links[t][1]] = true
-                            queue <- append(L, links[t][1])
-                        }
-                    }
+                    if !done {
+	                    for t := range links {
+	                        _, v := visited[links[t][1]]
+	                        if links[t][1] == link_goal {
+	                            solution = append(L, links[t][1])
+	                            done = true
+	                            mutex.Unlock()
+	                            return
+	                        }
+	                        if !v {
+	                            visited[links[t][1]] = true
+	                            queue <- append(L, links[t][1])
+	                        }
+	                    }
+	                }
                     mutex.Unlock()
                 } else {
                     fmt.Println(err)
@@ -96,14 +99,13 @@ func main() {
                 time.Sleep(10);
             }
 
-            thread_count--
             return;
         }(i)
     }
 
     //wait for threads to find the solution
-    ///TODO: should probably find a better way to do this (maybe mutex?)
-    for !done {
+    ///TODO: should probably find a better way to do this (maybe a channel?)
+    for !done || thread_count > 0 {
         time.Sleep(1)
     }
 
