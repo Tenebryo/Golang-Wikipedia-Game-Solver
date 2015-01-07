@@ -11,8 +11,6 @@ import (
 
 func main() {
 
-    //holds all the pages for BFS
-    queue := make(chan []string, 100000000)
 
     //regex to extract exclusively wikipedia links from fetched pages
     reFindLink, err := regexp.Compile("href=\"(/wiki/[^\"/ :#]*)\"")
@@ -37,8 +35,6 @@ func main() {
     //page to find
     link_goal := "/wiki/Egypt"
 
-    queue <- http_start
-
     done := false
 
     //Value to keep track of distance from original page
@@ -47,6 +43,12 @@ func main() {
     thread_count := 512
 
     var solution []string
+
+    //holds all the pages to visit for BFS
+    queue := make(chan []string, 100000000)
+
+    //add start page to queue
+    queue <- http_start
 
     for i := 0; i < thread_count; i++ {
 
